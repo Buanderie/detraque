@@ -18,6 +18,16 @@ else()
 endif()
 ##
 
+SET( CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -pthread -fopenmp" )
+
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -msse3")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse3")
+
 find_package( OpenCV REQUIRED )
-add_executable( detraque main.cc dlibfacedetector.cc )
+
+# sources
+file (GLOB_RECURSE DETRAQUE_SRC ${PROJECT_SOURCE_DIR}/*.cc)
+file (GLOB_RECURSE DETRAQUE_HEADERS ${PROJECT_SOURCE_DIR}/*.h)
+
+add_executable( detraque ${DETRAQUE_SRC} ${DETRAQUE_HEADERS} )
 target_link_libraries( detraque ${OpenCV_LIBS} opencv_world dlib blas lapack )

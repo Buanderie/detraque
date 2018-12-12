@@ -4,27 +4,12 @@
 
 #include <opencv2/opencv.hpp>
 
+#include "utils.h"
 #include "dlibfacedetector.h"
+#include "detracker.h"
 
 using namespace std;
 using namespace cv;
-
-Mat aspectResize(Mat &img, Size newSize, float &aspectRatio)
-{
-    float ar = (float)(img.cols) / (float)(img.rows);
-    if( ar > 1.0f )
-    {
-        // image plus large que haute
-        aspectRatio = (float)(newSize.width) / (float)(img.cols);
-    }
-    else
-    {
-        aspectRatio = (float)(newSize.height) / (float)(img.rows);
-    }
-    cv::Mat ret;
-    cv::resize( img, ret, cv::Size(), aspectRatio, aspectRatio );
-    return ret;
-}
 
 int main( int argc, char** argv )
 {
@@ -39,7 +24,9 @@ int main( int argc, char** argv )
     cv::Mat curFrame;
     float ar;
 
-    DlibFaceDetector dlibd;
+//    DlibFaceDetector dlibd;
+
+    DeTracker dtrack;
 
     for(;;)
     {
@@ -50,13 +37,32 @@ int main( int argc, char** argv )
             cap >> frame;
             if( frame.cols <= 0 || frame.rows <= 0 )
                 continue;
-            // curFrame = aspectResize( frame, cv::Size(800,600), ar );
-            curFrame = frame.clone();
+            curFrame = aspectResize( frame, cv::Size(800,600), ar );
         }
 
-        dlibd.detect( curFrame );
+        /*
+        std::vector< cv::RotatedRect > dets = dlibd.detect( curFrame );
+        for( cv::RotatedRect rrect : dets )
+        {
+            cv::Rect r = rrect.boundingRect();
+            cv::rectangle( curFrame, r, cv::Scalar(255,0,0), 1 );
+        }
+        */
 
-        imshow( "frame", curFrame );
+        dtrack.process( curFrame );
+
+        cv::Mat output = curFrame.clone();
+        dtrack.drawCurrentTracks( output );
+        /*
+        std::vector< cv::RotatedRect > res = dtrack.getTrackedRegions();
+        for( cv::RotatedRect rr : res )
+        {
+            cv::Mat crop( output, rr.boundingRect() );
+            cv::blur( crop, crop, cv::Size(35,35) );
+        }
+        */
+
+        imshow( "frame", output );
         waitKey(5);
 
     }

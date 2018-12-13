@@ -12,6 +12,7 @@ public:
         _tracker = new KCFTracker( true, false, true, false );
         _tracker->init( initialRegion.boundingRect(), initialImage.clone() );
         _curRegion = initialRegion;
+        _isActive = true;
     }
 
     virtual ~Track()
@@ -32,7 +33,18 @@ public:
         return _curRegion;
     }
 
+    bool active()
+    {
+        return _isActive;
+    }
+
+    void set_active( bool value )
+    {
+        _isActive = value;
+    }
+
     KCFTracker * _tracker;
     cv::RotatedRect _curRegion;
+    bool _isActive;
 
 };

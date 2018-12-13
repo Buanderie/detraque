@@ -15,7 +15,7 @@
 using namespace cv;
 using namespace std;
 
-// #define DEBUG_RETRACK
+#define DEBUG_RETRACK
 
 DeTracker::DeTracker()
 {
@@ -64,8 +64,12 @@ void DeTracker::detectorRoutine()
 //            cerr << "size=" << dimg.cols << " - " << dimg.rows << endl;
             std::vector< RotatedRect > dets = _detector->detect( dimg );
             cerr << "DETECTED " << dets.size() << " at t=" << lastTs << endl;
-            for( RotatedRect rr : dets )
+
+#pragma omp parallel for
+            for( int k = 0; k < dets.size(); ++k )
+            //for( RotatedRect rr : dets )
             {
+                cv::RotatedRect rr = dets[k];
                 double retrack_ts;
                 cv::RotatedRect retrack_rr = retrack( rr, lastTs, retrack_ts );
                 cv::Mat retrack_img;
@@ -150,6 +154,7 @@ void DeTracker::insertTrack(RotatedRect region, Mat &image)
     Track* max_track = nullptr;
 
     // Check if it corresponds to an active tracked region.
+#pragma omp parallel for
     for( int k = 0; k < _activeTracks.size(); ++k )
     {
         Track* t = _activeTracks[k];
@@ -166,7 +171,7 @@ void DeTracker::insertTrack(RotatedRect region, Mat &image)
     }
 
     // Fuck
-    if( max_overlap < 0.5 )
+    if( max_overlap < 0.2 )
     {
         cerr << "INSERTION - OVERLAP = " << max_overlap << " REGION=" << region.boundingRect() << endl;
         // This means new track
@@ -186,12 +191,15 @@ void DeTracker::updateTracks( cv::Mat img )
     {
         Track* t = (*it);
         double pv = t->update( img );
-        if( pv < 0.5 )
+        if( pv < 0.2 )
         {
+            // cerr << "deactivate pv=" << pv << endl;
             it = _activeTracks.erase(it);
+            // t->set_active(false);
         }
         else
         {
+            // t->set_active(true);
             ++it;
         }
     }
@@ -226,7 +234,10 @@ std::vector<RotatedRect> DeTracker::getTrackedRegions()
     // cerr << "DRAWING " << _activeTracks.size() << " regions" << endl;
     for( Track* t : _activeTracks )
     {
-        ret.push_back( t->region() );
+        if( t->active() )
+        {
+            ret.push_back( t->region() );
+        }
     }
     return ret;
 }

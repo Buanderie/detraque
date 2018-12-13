@@ -11,6 +11,22 @@
 using namespace std;
 using namespace cv;
 
+cv::Rect readjustRect( cv::Rect r , cv::Size imgSize )
+{
+    cv::Rect ret = r;
+    ret.x = max( r.x, 0 );
+    ret.y = max( r.y, 0 );
+    if( r.br().x > imgSize.width )
+    {
+        ret.width -= (r.br().x - imgSize.width);
+    }
+    if( r.br().y > imgSize.height )
+    {
+        ret.height -= (r.br().y - imgSize.height);
+    }
+    return ret;
+}
+
 int main( int argc, char** argv )
 {
 
@@ -53,14 +69,13 @@ int main( int argc, char** argv )
 
         cv::Mat output = curFrame.clone();
         dtrack.drawCurrentTracks( output );
-        /*
+
         std::vector< cv::RotatedRect > res = dtrack.getTrackedRegions();
         for( cv::RotatedRect rr : res )
         {
-            cv::Mat crop( output, rr.boundingRect() );
+            cv::Mat crop( output, readjustRect( rr.boundingRect(), cv::Size( curFrame.cols, curFrame.rows ) ) );
             cv::blur( crop, crop, cv::Size(35,35) );
         }
-        */
 
         imshow( "frame", output );
         waitKey(5);

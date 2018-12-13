@@ -131,7 +131,7 @@ vector<int> GAB::DetectFace(Mat img,vector<Rect>& rects,vector<float>& scores){
   const Options& opt = Options::GetInstance();
 
   int minFace = 20;
-  int maxFace = 3000;
+  int maxFace = 2000;
 
   omp_set_dynamic(1);
 

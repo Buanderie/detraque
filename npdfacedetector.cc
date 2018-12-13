@@ -10,7 +10,7 @@ std::vector<cv::RotatedRect> NPDFaceDetector::detect(cv::Mat &img)
 
     cv::Mat frame;
     float ar;
-    frame = aspectResize( img, cv::Size(640,480), ar );
+    frame = aspectResize( img, cv::Size(350,350), ar );
 
     cv::Mat gray;
     cvtColor(frame, gray, CV_BGR2GRAY);
@@ -20,7 +20,7 @@ std::vector<cv::RotatedRect> NPDFaceDetector::detect(cv::Mat &img)
     index = _gab.DetectFace(gray,rects,scores);
 
     for (int i = 0; i < index.size(); i++) {
-        if(scores[index[i]]>100)
+        if(scores[index[i]]>20)
         {
             cv::Rect drect = rects[index[i]];
             cv::RotatedRect drr = rectToRotatedRect(drect);
